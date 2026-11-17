@@ -1,8 +1,8 @@
 {% load static %}
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Super Admin | Kedarmart</title>
-<link rel="stylesheet" href="{% static 'superadmin.css' %}"></head>
-<body><header><a href="/"><img src="{% static 'assets/logo.jpeg' %}" alt="Kedarkhand Global Ventures"></a><a class="back" href="/">View storefront ↗</a></header>
+<link rel="stylesheet" href="{% static 'superadmin.css' %}?v=logo-4"></head>
+<body><header><a href="/"><img src="{% static 'assets/logo1.jpeg' %}" alt="Kedarkhand Global Ventures"></a><a class="back" href="/">View storefront ↗</a></header>
 <main>{% if login_page %}<section class="login"><span class="eyebrow">KEDARMART MANAGEMENT</span><h1>Super Admin</h1><p>Sign in to manage your store and collection images.</p>
 {% if error %}<div class="message error" role="alert">{{ error }}</div>{% endif %}
 <form method="post">{% csrf_token %}<label for="username">Username / mobile number</label><input id="username" name="username" autocomplete="username" required maxlength="150"><label for="password">Password</label><input id="password" name="password" type="password" autocomplete="current-password" required maxlength="128"><button type="submit">Sign in</button></form></section>
