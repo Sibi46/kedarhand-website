@@ -14,6 +14,7 @@ from django.middleware.csrf import get_token
 from django.utils import timezone
 from django.views.decorators.csrf import ensure_csrf_cookie
 from .models import Product, Variant, SavedSelection, Address, Coupon, Order, OrderItem, Review, NewsletterSubscriber, Category
+from .models import StoreConfiguration, ContactEnquiry
 
 class APIError(Exception):
     def __init__(self, message, status=400):
@@ -28,7 +29,10 @@ def storefront(request):
     html = html.replace('href="style.css', 'href="/static/style.css').replace('src="app.js', 'src="/static/app.js')
     html = html.replace('href="design.css', 'href="/static/design.css')
     html = html.replace('src="assets/', 'src="/static/assets/')
-    html = html.replace('</body>', '<script src="/static/backend.js"></script></body>')
+    for category in ['coffee', 'tea', 'edible-oils']:
+        html = html.replace('href="#' + category + '"', 'href="/categories/' + category + '/"')
+    html = html.replace('href="#shop"', 'href="/shop/"')
+    html = html.replace('</body>', '<script src="/static/backend.js"></script><script src="/static/commerce.js"></script></body>')
     return HttpResponse(html)
 
 def text(data, key, maximum=200, required=True):
@@ -69,6 +73,7 @@ def save_selection(request, data):
 
 def product_json(p):
     return {'id': p.slug, 'name': p.name, 'cat': p.category, 'desc': p.description, 'variant': p.options_note,
+            'subcategory': p.subcategory, 'image': p.image.url if p.image else None,
             'price': str(p.price) if p.price is not None else None, 'stock': p.stock,
             'variants': [{'id': v.id, 'name': v.name, 'price': str(v.price), 'stock': v.stock} for v in p.variants.all() if v.active]}
 
@@ -80,6 +85,7 @@ def address_json(a):
 
 def order_json(o):
     return {'reference': str(o.reference), 'status': o.get_status_display(), 'created_at': o.created_at.isoformat(),
+            'shipping': str(o.shipping),
             'total': str(o.total) if o.total is not None else None, 'tracking': o.tracking,
             'items': [{'name': i.product_name, 'variant': i.variant_name, 'quantity': i.quantity,
                        'unit_price': str(i.unit_price) if i.unit_price is not None else None} for i in o.items.all()]}
@@ -131,6 +137,16 @@ def api(request, resource, item=None):
         return JsonResponse({'error': 'Item not found.'}, status=404)
 
 def dispatch(request, resource, item, data):
+    if resource == 'configuration':
+        require_method(request, ['GET'])
+        config = StoreConfiguration.objects.first() or StoreConfiguration()
+        return {'shipping_fee': str(config.shipping_fee), 'free_shipping_above': str(config.free_shipping_above) if config.free_shipping_above is not None else None,
+                'shipping_note': config.shipping_note, 'whatsapp': config.whatsapp, 'instagram': config.instagram, 'facebook': config.facebook}, 200
+    if resource == 'contact':
+        require_method(request, ['POST'])
+        rate_limit(request, 'contact', 5)
+        ContactEnquiry.objects.create(name=text(data, 'name', 100), email=email(data), message=text(data, 'message', 3000))
+        return {'message': 'Thank you. Your enquiry has been saved and our team will respond by email.'}, 201
     if resource == 'session':
         require_method(request, ['GET'])
         return {'csrf': get_token(request), 'user': user_json(request.user), **selection(request)}, 200
@@ -141,11 +157,13 @@ def dispatch(request, resource, item, data):
             return product_json(qs.get(slug=item)), 200
         if request.GET.get('category'):
             qs = qs.filter(category=request.GET['category'])
+        if request.GET.get('subcategory'):
+            qs = qs.filter(subcategory=request.GET['subcategory'])
         if request.GET.get('q'):
             from django.db.models import Q
             qs = qs.filter(Q(name__icontains=request.GET['q']) | Q(description__icontains=request.GET['q']))
         return {'products': [product_json(p) for p in qs],
-                'categories': [{'slug': c.slug, 'name': c.name, 'image': c.image.url if c.image else None} for c in Category.objects.all()]}, 200
+                'categories': [{'slug': c.slug, 'name': c.name, 'image': c.image.url if c.image else None, 'gallery': [{'image': g.image.url, 'caption': g.caption} for g in c.gallery.all()]} for c in Category.objects.prefetch_related('gallery').all()]}, 200
     if resource in ['register', 'login']:
         require_method(request, ['POST'])
         rate_limit(request, resource, 15)
@@ -301,10 +319,12 @@ def checkout_order(request, data):
     if c and enquiry:
         raise APIError('Coupons apply once all selected products have confirmed prices.')
     discount = (subtotal * Decimal(c.percent) / 100).quantize(Decimal('0.01')) if c else Decimal('0')
+    config = StoreConfiguration.objects.first() or StoreConfiguration()
+    shipping = Decimal('0') if enquiry or (config.free_shipping_above is not None and subtotal-discount >= config.free_shipping_above) else config.shipping_fee
     order = Order.objects.create(user=request.user, customer_name=a.name, email=request.user.email,
         address=address_json(a), note=text(data,'note',2000,required=False), checkout_key=key,
         status='enquiry' if enquiry else 'pending', subtotal=None if enquiry else subtotal,
-        discount=discount, total=None if enquiry else subtotal-discount, coupon_code=c.code if c else '')
+        discount=discount, shipping=shipping, total=None if enquiry else subtotal-discount+shipping, coupon_code=c.code if c else '')
     for p, v, qty, price in entries:
         OrderItem.objects.create(order=order, product=p, product_name=p.name, variant_name=v.name if v else '', quantity=qty, unit_price=price)
         if not enquiry:

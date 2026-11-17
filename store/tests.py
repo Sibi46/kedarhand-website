@@ -9,6 +9,49 @@ from datetime import timedelta
 from .models import Product, Variant, Address, Order, Coupon, Review, NewsletterSubscriber
 
 class StoreTests(TestCase):
+    def test_contact_is_persisted_validated_and_rate_limited(self):
+        from .models import ContactEnquiry
+        self.assertEqual(self.post('contact', {'name': 'A', 'email': 'invalid', 'message': 'Hello'}).status_code, 400)
+        payload = {'name': 'Customer', 'email': 'customer@example.com', 'message': 'Delivery question'}
+        self.assertEqual(self.post('contact', payload).status_code, 201)
+        self.assertEqual(ContactEnquiry.objects.get().message, 'Delivery question')
+        for _ in range(3):
+            self.post('contact', payload)
+        self.assertEqual(self.post('contact', payload).status_code, 429)
+
+    def test_shipping_is_calculated_and_snapshotted(self):
+        from .models import StoreConfiguration
+        config = StoreConfiguration.objects.create(shipping_fee=50, free_shipping_above=200)
+        self.product.price = Decimal('100')
+        self.product.stock = 10
+        self.product.save()
+        self.client.force_login(self.user)
+        self.add()
+        response = self.checkout()
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.json()['total'], '150.00')
+        self.assertEqual(Order.objects.get().shipping, Decimal('50'))
+        self.add(2)
+        response = self.checkout()
+        self.assertEqual(response.json()['total'], '200.00')
+        config.shipping_fee = 99
+        config.save()
+        self.assertEqual(Order.objects.order_by('id').first().shipping, Decimal('50'))
+
+    def test_crawlable_catalog_and_subcategory_filter(self):
+        from .models import Category
+        Category.objects.get_or_create(slug='coffee', defaults={'name': 'Coffee'})
+        self.product.subcategory = 'Ground coffee'
+        self.product.save()
+        self.assertEqual(len(self.client.get('/api/products/?subcategory=Ground%20coffee').json()['products']), 1)
+        self.assertContains(self.client.get('/products/coffee/'), '<title>Coffee | Kedarmart</title>', html=True)
+        self.assertContains(self.client.get('/categories/coffee/'), '/products/coffee/')
+        self.assertContains(self.client.get('/sitemap.xml'), '/products/coffee/')
+        self.product.active = False
+        self.product.save()
+        self.assertEqual(self.client.get('/products/coffee/').status_code, 404)
+        self.assertNotContains(self.client.get('/sitemap.xml'), '/products/coffee/')
+
     def setUp(self):
         cache.clear()
         self.product = Product.objects.create(slug='coffee', name='Coffee', category='coffee', description='Coffee')
@@ -160,7 +203,7 @@ class StoreTests(TestCase):
             self.user.save()
             self.client.force_login(self.user)
             response = self.client.post('/admin/store/category/add/', {
-                'name': 'Coffee', 'slug': 'coffee',
+                'name': 'Coffee', 'slug': 'coffee', 'gallery-TOTAL_FORMS': '0', 'gallery-INITIAL_FORMS': '0',
                 'image': SimpleUploadedFile('coffee.png', buffer.getvalue(), content_type='image/png'), '_save': 'Save'})
             self.assertEqual(response.status_code, 302)
             category = Category.objects.get(slug='coffee')
@@ -178,7 +221,7 @@ class StoreTests(TestCase):
         self.user.save()
         self.client.force_login(self.user)
         response = self.client.post('/admin/store/category/add/', {
-            'name': 'Coffee', 'slug': 'coffee',
+            'name': 'Coffee', 'slug': 'coffee', 'gallery-TOTAL_FORMS': '0', 'gallery-INITIAL_FORMS': '0',
             'image': SimpleUploadedFile('fake.jpg', b'not an image', content_type='image/jpeg'), '_save': 'Save'})
         self.assertEqual(response.status_code, 200)
         self.assertFalse(Category.objects.exists())
@@ -194,10 +237,47 @@ class StoreTests(TestCase):
                     self.urls.append(attrs['src'])
         parser = Assets()
         parser.feed(self.client.get('/').content.decode())
-        self.assertEqual(len(parser.urls), 4)
+        self.assertEqual(len(parser.urls), 5)
         for url in parser.urls:
             self.assertTrue(url.startswith('/static/'), url)
             self.assertNotIn('<', url)
             self.assertNotIn('>', url)
         self.assertTrue(any(url.startswith('/static/style.css?') for url in parser.urls))
         self.assertTrue(any(url.startswith('/static/app.js?') for url in parser.urls))
+
+
+class FlexibleCategoryTests(TestCase):
+    def setUp(self):
+        self.admin_user = get_user_model().objects.create_superuser('category-admin', password='test-admin-secret')
+        self.client.force_login(self.admin_user)
+
+    def test_new_category_products_and_gallery(self):
+        from .models import Category, CategoryImage
+        from .admin import ProductForm
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from django.test import override_settings
+        from PIL import Image
+        import io, tempfile
+        from django.conf import settings
+        response = self.client.post('/super-admin/', {'action': 'create-category', 'name': 'Snacks'})
+        category = Category.objects.get(slug='snacks')
+        self.assertRedirects(response, f'/admin/store/category/{category.pk}/change/', fetch_redirect_response=False)
+        form = ProductForm(data={'name': 'Roasted nuts', 'slug': 'roasted-nuts', 'category': 'snacks', 'description': 'Fresh nuts', 'options_note': '100g', 'stock': 10, 'active': True})
+        self.assertTrue(form.is_valid(), form.errors)
+        form.save()
+        with tempfile.TemporaryDirectory(dir=settings.BASE_DIR) as directory, override_settings(MEDIA_ROOT=directory):
+            buffer = io.BytesIO()
+            Image.new('RGB', (2, 2)).save(buffer, format='PNG')
+            for i in range(7):
+                CategoryImage.objects.create(category=category, caption=f'Photo {i}', image=SimpleUploadedFile(f'image{i}.png', buffer.getvalue(), content_type='image/png'))
+            payload = self.client.get('/api/products/').json()
+            data = next(c for c in payload['categories'] if c['slug'] == 'snacks')
+            self.assertEqual(len(data['gallery']), 7)
+            self.assertEqual(self.client.get('/categories/snacks/').status_code, 200)
+            self.assertContains(self.client.get('/sitemap.xml'), '/categories/snacks/')
+
+    def test_category_creation_requires_superuser(self):
+        self.client.logout()
+        self.client.post('/super-admin/', {'action': 'create-category', 'name': 'Unauthorized'})
+        from .models import Category
+        self.assertFalse(Category.objects.filter(slug='unauthorized').exists())

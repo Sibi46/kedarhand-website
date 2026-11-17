@@ -35,6 +35,14 @@ The seed command adds the eight supplied products without overwriting admin edit
 
 ## Backend behavior
 
+### Store settings and catalog management
+
+The Super Admin dashboard links to product, order, customer, enquiry and store settings screens. In Products, set a subcategory, upload a real product photograph, and configure confirmed prices and stock. Subcategory filters appear automatically for populated categories. Existing illustrative packaging remains the fallback until a photo is uploaded.
+
+In **Shipping and contact settings**, add one configuration with a standard shipping fee, optional free-shipping threshold (applied after discounts), delivery note, WhatsApp number including country code, and HTTPS Instagram/Facebook links. Blank contact links stay hidden. Until configured, shipping defaults to zero; delivery coverage and timelines still require confirmation. Shipping is calculated on the server and saved on each order. Online payments require a separate provider integration.
+
+The contact page saves enquiries in the admin with a resolved flag. It validates input and uses CSRF protection and rate limiting. This does not send email notifications. Product and category URLs under `/products/` and `/categories/` include server-rendered catalog content and metadata; `/sitemap.xml` excludes inactive products, and `/robots.txt` identifies the sitemap.
+
 - Database-backed catalog, search and categories.
 - Registration/login/logout with Django password hashing, password validators, CSRF protection and HTTP-only session cookies.
 - Guest session cart/wishlist merged into the customer account on login and persisted in the database.
@@ -108,3 +116,6 @@ All paths end with `/`. Mutations require JSON and the `X-CSRFToken` returned by
 | `/api/newsletter/` | POST | Save subscriber email |
 
 Company text and catalog come from the supplied requirements. Packaging is illustrative; lifestyle imagery uses Unsplash and fonts use Google Fonts.
+
+
+Super Admin supports any number of categories and products. Use **Create a category** to enter a name and optional cover image, then **Edit name and gallery images** to upload seven gallery images (or add more rows). Use **Add product** to select any saved category and upload the product photo. Category galleries appear below their products in the storefront. Image uploads accept JPG, PNG and WebP up to 5 MB each.

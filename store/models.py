@@ -11,7 +11,7 @@ def validate_image_size(value):
         raise ValidationError('Choose an image smaller than 5 MB.')
 
 class Category(models.Model):
-    slug = models.SlugField(unique=True, choices=[('coffee', 'Coffee'), ('tea', 'Tea'), ('edible-oils', 'Edible oils')])
+    slug = models.SlugField(unique=True)
     name = models.CharField(max_length=100)
     image = models.ImageField(upload_to='categories/', blank=True,
         validators=[validate_image_size, FileExtensionValidator(['jpg', 'jpeg', 'png', 'webp'])],
@@ -21,15 +21,26 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
+class CategoryImage(models.Model):
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='gallery')
+    image = models.ImageField(upload_to='categories/gallery/', validators=[validate_image_size, FileExtensionValidator(['jpg', 'jpeg', 'png', 'webp'])])
+    caption = models.CharField(max_length=160, blank=True)
+    class Meta:
+        ordering = ['id']
+    def __str__(self):
+        return self.caption or f'{self.category.name} image'
+
 class Product(models.Model):
     slug = models.SlugField(unique=True)
     name = models.CharField(max_length=160)
-    category = models.CharField(max_length=20, choices=[('coffee', 'Coffee'), ('tea', 'Tea'), ('edible-oils', 'Edible oils')])
+    category = models.CharField(max_length=50)
     description = models.TextField()
     options_note = models.CharField(max_length=200, default='Pack sizes to be confirmed')
     price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, validators=[MinValueValidator(Decimal('0.01'))])
     stock = models.PositiveIntegerField(default=0)
     active = models.BooleanField(default=True)
+    subcategory = models.CharField(max_length=100, blank=True)
+    image = models.ImageField(upload_to='products/', blank=True, validators=[validate_image_size, FileExtensionValidator(['jpg', 'jpeg', 'png', 'webp'])])
     class Meta:
         ordering = ['id']
     def __str__(self):
@@ -77,6 +88,7 @@ class Order(models.Model):
     note = models.TextField(blank=True)
     subtotal = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     discount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    shipping = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     total = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     coupon_code = models.CharField(max_length=40, blank=True)
     tracking = models.CharField(max_length=200, blank=True, help_text='Carrier and tracking reference')
@@ -109,3 +121,35 @@ class Review(models.Model):
 class NewsletterSubscriber(models.Model):
     email = models.EmailField(unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+class StoreConfiguration(models.Model):
+    shipping_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0, validators=[MinValueValidator(0)])
+    free_shipping_above = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, validators=[MinValueValidator(0)])
+    shipping_note = models.CharField(max_length=300, default='Delivery availability and timelines will be confirmed by our team.')
+    whatsapp = models.CharField(max_length=15, blank=True, help_text='International number with country code, digits only.')
+    instagram = models.URLField(blank=True)
+    facebook = models.URLField(blank=True)
+    def clean(self):
+        super().clean()
+        if self.whatsapp and (not self.whatsapp.isascii() or not self.whatsapp.isdigit() or not 8 <= len(self.whatsapp) <= 15):
+            raise ValidationError({'whatsapp': 'Enter 8–15 digits including country code.'})
+        for field in ['instagram', 'facebook']:
+            if getattr(self, field) and not getattr(self, field).startswith('https://'):
+                raise ValidationError({field: 'Use an HTTPS URL.'})
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+    def __str__(self):
+        return 'Shipping and contact settings'
+
+class ContactEnquiry(models.Model):
+    name = models.CharField(max_length=100)
+    email = models.EmailField()
+    message = models.TextField(max_length=3000)
+    resolved = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name_plural = 'contact enquiries'
+    def __str__(self):
+        return self.name

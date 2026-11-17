@@ -10,6 +10,6 @@ assert(/<script src="app\.js(?:\?[^"<>]*)?"><\/script>/.test(html), 'Storefront 
 for(const file of ['dist/style.css','dist/app.js'])assert(existsSync(file));
 for(const id of ['app','count','toast','searchbar','search','search-toggle'])assert(html.includes(`id="${id}"`),`Missing DOM target ${id}`);
 for(const route of ['coffee','tea','edible-oils','about','brands','contact','cart','checkout','account','orders','wishlist','privacy','terms','shipping','returns'])assert(js.includes(`'${route}'`)||js.includes(`${route}:`),`Missing route ${route}`);
-for(const fact of ['05AUSPC5607K1ZG','poojachhetri2588@gmail.com','248003'])assert((html+js).includes(fact),`Missing company fact ${fact}`);
+for(const fact of ['05AUSPC5607K1ZG','info@kedarmart.com','248001'])assert((html+js).includes(fact),`Missing company fact ${fact}`);
 assert(js.includes('No order has been placed.'));
 console.log('Static assets, page routes, company facts and enquiry contract verified.');
