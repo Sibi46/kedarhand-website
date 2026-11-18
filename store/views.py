@@ -28,6 +28,7 @@ def storefront(request):
     html = (settings.BASE_DIR / 'dist/index.html').read_text(encoding='utf-8')
     html = html.replace('href="style.css', 'href="/static/style.css').replace('src="app.js', 'src="/static/app.js')
     html = html.replace('href="design.css', 'href="/static/design.css')
+    html = html.replace('src="announcement.js', 'src="/static/announcement.js')
     html = html.replace('src="assets/', 'src="/static/assets/')
     for category in ['coffee', 'tea', 'edible-oils']:
         html = html.replace('href="#' + category + '"', 'href="/categories/' + category + '/"')

@@ -8,10 +8,20 @@
 
 .footer-top a.super-admin-button{display:inline-flex;align-items:center;justify-content:center;padding:10px 18px;border:1px solid #c5ab7b;border-radius:4px;color:#f0e4ca;background:#ffffff08;margin-top:18px}.footer-top a.super-admin-button:hover{background:#ffffff15}
 
-/* Square brand artwork: preserve the full logo without cropping. */
-header{height:auto;min-height:140px;grid-template-columns:130px 1fr auto}
-header .brand-logo{width:110px;height:110px;background:#03101e;border-radius:6px}
-.brand-logo img,header .brand-logo img,.footer-top .brand-logo img{position:static;display:block;width:100%;height:100%;max-width:100%;object-fit:contain}
-.footer-top .brand-logo{width:200px;height:200px;background:#03101e;border-radius:6px}
-@media(max-width:1000px){header{grid-template-columns:110px 1fr}header nav{grid-column:1/-1;grid-row:2}header .tools{justify-self:end}}
-@media(max-width:600px){header{min-height:0;grid-template-columns:90px 1fr}header .brand-logo{width:90px;height:90px}.footer-top .brand-logo{width:180px;height:180px}}
+/* Simple company name and announcement strip. */
+header{height:auto;min-height:92px;grid-template-columns:240px 1fr auto}
+.company-brand{display:inline-flex;flex-direction:column;align-items:flex-start;gap:5px;color:var(--ink);line-height:1.1;min-width:0}
+.company-brand .company-name{font:500 25px Georgia,serif;letter-spacing:.3px}
+.company-brand small{font-size:10px;font-weight:500;letter-spacing:2.8px;text-transform:uppercase}
+.footer-top .company-brand{color:#f7f5ef;margin:0 0 12px}
+.announcement{display:flex;align-items:center;gap:16px;padding:9px 5%;text-align:left}
+.announcement-window{overflow:hidden;flex:1;min-width:0}
+.announcement-track{display:flex;width:max-content;animation:announcement-scroll 32s linear infinite}
+.announcement-track>span{flex:none;padding-right:70px;white-space:nowrap;font-size:11px;letter-spacing:.6px}
+.announcement button{flex:none;border:1px solid #ffffff60;border-radius:3px;background:transparent;color:inherit;padding:4px 9px;font-size:10px}
+.announcement:hover .announcement-track,.announcement:focus-within .announcement-track,.announcement.is-paused .announcement-track{animation-play-state:paused}
+@keyframes announcement-scroll{to{transform:translateX(-50%)}}
+@media(max-width:1100px){header{grid-template-columns:1fr auto}header nav{grid-column:1/-1;grid-row:2}header .tools{justify-self:end}}
+@media(max-width:600px){header{min-height:0;gap:12px}.company-brand .company-name{font-size:21px}.company-brand small{font-size:8px;letter-spacing:2px}.announcement{gap:10px}.announcement-track>span{font-size:10px}}
+@media(max-width:360px){.company-brand .company-name{font-size:18px}.company-brand small{font-size:7px;letter-spacing:1.5px}}
+@media(prefers-reduced-motion:reduce){.announcement-track{animation:none;width:auto}.announcement-track>span{white-space:normal;line-height:1.6;padding-right:0}.announcement-track>span[aria-hidden],.announcement button{display:none}}
