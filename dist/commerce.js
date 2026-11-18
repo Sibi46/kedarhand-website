@@ -2,7 +2,7 @@
 let storeConfig = null;
 const baseContact = contact, baseArt = art, commerceRender = render;
 art = function(p) {
-  return p.image ? `<a class="product-art" href="/products/${encodeURIComponent(p.id)}/"><img src="${escapeHTML(p.image)}" alt="${escapeHTML(p.name)}" loading="lazy" style="width:100%;height:100%;min-height:240px;max-height:460px;object-fit:contain"></a>` : baseArt(p);
+  return p.image ? `<a class="product-art" href="${window.KEDARMART_BASE_PATH||''}/products/${encodeURIComponent(p.id)}/"><img src="${escapeHTML(p.image)}" alt="${escapeHTML(p.name)}" loading="lazy" style="width:100%;height:100%;min-height:240px;max-height:460px;object-fit:contain"></a>` : baseArt(p);
 };
 contact = function() {
   const links = storeConfig ? [['WhatsApp',storeConfig.whatsapp?'https://wa.me/'+storeConfig.whatsapp:''],['Instagram',storeConfig.instagram],['Facebook',storeConfig.facebook]].filter(([,url])=>url).map(([name,url])=>`<a class="btn light" href="${escapeHTML(url)}" target="_blank" rel="noopener noreferrer">${name} ↗</a>`).join(' ') : '';
@@ -29,7 +29,7 @@ render = function() {
     if(form)form.before(note);
   }
   // Expose real URLs for crawlers and shared product links.
-  app.querySelectorAll('a[href^="#product/"]').forEach(a=>{a.href='/products/'+encodeURIComponent(a.getAttribute('href').slice(9))+'/'});
+  app.querySelectorAll('a[href^="#product/"]').forEach(a=>{a.href=(window.KEDARMART_BASE_PATH||'')+'/products/'+encodeURIComponent(a.getAttribute('href').slice(9))+'/'});
   const p=route.startsWith('product/')?products.find(p=>p.id===route.split('/')[1]):null;
   if(p)document.title=p.name+' | Kedarmart';
 };

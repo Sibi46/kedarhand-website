@@ -84,3 +84,16 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
 CSRF_FAILURE_VIEW = 'store.views.csrf_failure'
 DATA_UPLOAD_MAX_MEMORY_SIZE = 100_000
+
+# Optional independent deployment below another website, e.g. /kedarhand/.
+FORCE_SCRIPT_NAME = os.environ.get('APP_BASE_PATH', '').rstrip('/') or None
+if FORCE_SCRIPT_NAME:
+    STATIC_URL = FORCE_SCRIPT_NAME + '/static/'
+    MEDIA_URL = FORCE_SCRIPT_NAME + '/media/'
+    SESSION_COOKIE_NAME = 'kedarhand_sessionid'
+    CSRF_COOKIE_NAME = 'kedarhand_csrftoken'
+    SESSION_COOKIE_PATH = CSRF_COOKIE_PATH = FORCE_SCRIPT_NAME + '/'
+    MIDDLEWARE.insert(0, 'kedarmart.prefix.StorePrefixMiddleware')
+MEDIA_ROOT = Path(os.environ.get('MEDIA_ROOT', str(MEDIA_ROOT)))
+if os.environ.get('TRUST_HTTPS_PROXY') == 'true':
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

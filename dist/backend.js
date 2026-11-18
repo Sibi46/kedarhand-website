@@ -5,7 +5,7 @@ const originalRender=render,originalProduct=product;
 const originalArt=art;
 function escapeHTML(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 art=function(p){return originalArt({...p,name:escapeHTML(p.name)})};
-async function api(path,method='GET',data){const response=await fetch('/api/'+path+'/',{method,credentials:'same-origin',headers:{'Content-Type':'application/json','X-CSRFToken':csrf},...(data?{body:JSON.stringify(data)}:{})});const result=await response.json();if(!response.ok)throw new Error(result.error||'Unable to complete your request.');return result}
+async function api(path,method='GET',data){const response=await fetch((window.KEDARMART_BASE_PATH||'')+'/api/'+path+'/',{method,credentials:'same-origin',headers:{'Content-Type':'application/json','X-CSRFToken':csrf},...(data?{body:JSON.stringify(data)}:{})});const result=await response.json();if(!response.ok)throw new Error(result.error||'Unable to complete your request.');return result}
 function applySelection(data){serverCart=data.cart;cart=Object.fromEntries(Object.entries(serverCart).map(([key,item])=>[key,item.quantity]));wishlist=data.wishlist;document.querySelector('#count').textContent=Object.values(cart).reduce((a,b)=>a+b,0)}
 function money(price){return price==null?'Pricing coming soon':'₹'+Number(price).toFixed(2)}
 save=function(){document.querySelector('#count').textContent=Object.values(cart).reduce((a,b)=>a+b,0)};
