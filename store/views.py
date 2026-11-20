@@ -28,15 +28,15 @@ def storefront(request):
     html = (settings.BASE_DIR / 'dist/index.html').read_text(encoding='utf-8')
     html = html.replace('href="style.css', 'href="/static/style.css').replace('src="app.js', 'src="/static/app.js')
     html = html.replace('href="design.css', 'href="/static/design.css')
+    html = html.replace('href="modern.css', 'href="/static/modern.css')
     html = html.replace('src="announcement.js', 'src="/static/announcement.js')
     html = html.replace('src="assets/', 'src="/static/assets/')
     for category in ['coffee', 'tea', 'edible-oils']:
         html = html.replace('href="#' + category + '"', 'href="/categories/' + category + '/"')
     html = html.replace('href="#shop"', 'href="/shop/"')
     html = html.replace('</body>', '<script src="/static/backend.js"></script><script src="/static/commerce.js"></script></body>')
-    if settings.FORCE_SCRIPT_NAME:
-        base_path = json.dumps(settings.FORCE_SCRIPT_NAME)
-        html = html.replace('</head>', '<script>window.KEDARMART_BASE_PATH=' + base_path + ';</script></head>')
+    base_path = json.dumps(settings.FORCE_SCRIPT_NAME or '')
+    html = html.replace('</head>', '<script>window.KEDARMART_BASE_PATH=' + base_path + ';</script></head>')
     return HttpResponse(html)
 
 def text(data, key, maximum=200, required=True):
