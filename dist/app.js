@@ -33,7 +33,7 @@ function home(){const asset=(window.KEDARMART_BASE_PATH!==undefined?(window.KEDA
 <div class="stage-disc" aria-hidden="true"></div>
 <svg class="stage-orbit" viewBox="0 0 600 600" aria-hidden="true"><ellipse cx="300" cy="300" rx="280" ry="180" transform="rotate(-35 300 300)" fill="none" stroke="currentColor" stroke-width="1"/><circle cx="525" cy="162" r="7" fill="currentColor"/><path d="M70 90v32m-16-16h32" fill="none" stroke="currentColor" stroke-width="2"/></svg>
 <div class="ritual-photo-wrap"><img class="ritual-photo" data-ritual-photo src="${asset}coffee-ritual.jpg" alt="Freshly brewed coffee for a quiet morning" fetchpriority="high" width="1400" height="1000"><div class="photo-shade"></div><span class="photo-caption" data-ritual-caption role="status" aria-live="polite">01 / THE COFFEE MOMENT</span><a class="photo-explore" data-ritual-link href="#coffee" aria-label="Explore coffee">&#8599;</a></div>
-<div class="goodness-seal" aria-hidden="true"><svg viewBox="0 0 120 120"><defs><path id="goodness-circle" d="M60,60 m-44,0 a44,44 0 1,1 88,0 a44,44 0 1,1 -88,0"/></defs><text><textPath href="#goodness-circle" textLength="275">LITTLE RITUALS ? EVERYDAY GOODNESS ? </textPath></text></svg><span>&#10035;</span></div>
+
 <div class="ritual-floating-card"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M20 32h25v12c0 8-25 8-25 0zM45 34h6c8 0 7 13-6 12M16 53h34M27 23c-8-8 8-8 0-16M37 23c-8-8 8-8 0-16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><div><strong>Find your little pause.</strong><span>A moment worth making.</span></div></div>
 <span class="stage-footnote">THOUGHTFULLY CHOSEN. BEAUTIFULLY EVERYDAY.</span>
 </div>
