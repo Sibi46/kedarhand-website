@@ -4,6 +4,7 @@
   if (!app) return;
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   let paused = false;
+  let giftEnquiry = '';
   try { paused = sessionStorage.getItem('kedarhand-motion-paused') === 'true'; } catch (_) {}
   document.documentElement.classList.toggle('motion-paused', paused);
   const observer = 'IntersectionObserver' in window ? new IntersectionObserver(entries => {
@@ -21,6 +22,11 @@
     kitchen: { image: 'kitchen-essentials.jpg', alt: 'Cooking oil and ingredients for everyday meals', caption: '03 / SOMETHING DELICIOUS STARTS HERE', route: 'edible-oils' }
   };
   function enhance() {
+    const message = app.querySelector('#contact-enquiry textarea[name="message"]');
+    if (giftEnquiry && message && !message.value) {
+      message.value = `Hello Kedarmart, I would like to enquire about ${giftEnquiry} for a loved one. Please share the available options, packaging, prices and delivery details.`;
+      giftEnquiry = '';
+    }
     if (observer && !reduceMotion.matches && !paused) {
       app.querySelectorAll('.modern-heading,.category,.products>article,.story-photo,.story-copy,.brand-story,.kitchen-feature,.visual-interlude,.newsletter').forEach((element, index) => {
         if (element.hasAttribute('data-reveal-ready')) return;
@@ -37,6 +43,8 @@
     }
   }
   app.addEventListener('click', event => {
+    const giftLink = event.target.closest('[data-gift-enquiry]');
+    if (giftLink) giftEnquiry = giftLink.dataset.giftEnquiry;
     const choice = event.target.closest('[data-ritual]');
     if (choice && rituals[choice.dataset.ritual]) {
       const ritual = rituals[choice.dataset.ritual];
