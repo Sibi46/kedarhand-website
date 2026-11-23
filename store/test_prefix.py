@@ -12,10 +12,11 @@ class StorePrefixTests(SimpleTestCase):
         response = StorePrefixMiddleware(storefront)(request)
         html = response.content.decode()
         self.assertIn('window.KEDARMART_BASE_PATH="/kedarhand"', html)
-        self.assertIn('src="/kedarhand/static/backend.js"', html)
+        self.assertIn('src="/kedarhand/static/backend.js', html)
         self.assertIn('src="/kedarhand/static/experience.js', html)
         self.assertIn('href="/kedarhand/static/experience.css', html)
         self.assertIn('href="/kedarhand/static/botanical.css', html)
+        self.assertIn('href="/kedarhand/static/fonts-footer.css', html)
         self.assertIn('href="/kedarhand/shop/"', html)
         self.assertNotIn('src="/static/', html)
 

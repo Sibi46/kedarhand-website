@@ -67,4 +67,17 @@ document.addEventListener('submit',async e=>{
   } catch(error){status.textContent=error.message}
   finally{button.disabled=false}
 },true);
-api('configuration').then(config=>{storeConfig=config;if(backendReady)render()}).catch(()=>{});
+function updateFooterSocial(config) {
+  const target = document.querySelector('#footer-social');
+  if (!target) return;
+  target.querySelectorAll('[data-config-social]').forEach(link => link.remove());
+  const links = [
+    ['Facebook', config.facebook, '<span class="footer-social-letter" aria-hidden="true">f</span>'],
+    ['Instagram', config.instagram, '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".7"/></svg>'],
+    ['WhatsApp', /^\d{8,15}$/.test(config.whatsapp || '') ? 'https://wa.me/' + config.whatsapp : '', '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18l-1 4 5-2a9 9 0 1 0-4-2z"/><path d="m8 7 2 3-1 1 4 4 1-1 3 2"/></svg>']
+  ];
+  links.filter(([,url])=>url && /^https:\/\//.test(url)).forEach(([name,url,icon]) => {
+    target.insertAdjacentHTML('beforeend', `<a data-config-social href="${escapeHTML(url)}" target="_blank" rel="noopener noreferrer" aria-label="Kedarmart on ${name}">${icon}</a>`);
+  });
+}
+api('configuration').then(config=>{storeConfig=config;updateFooterSocial(config);if(backendReady)render()}).catch(()=>{});

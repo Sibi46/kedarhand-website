@@ -19,6 +19,8 @@ assert(el('#app').innerHTML.includes('Welcome, Tester.'));
 el('#news-email').value='test@example.com';
 await capture.submit({target:{id:'newsletter',fields:{},querySelector(){return {disabled:false}},reset(){}},stopImmediatePropagation(){},preventDefault(){}});
 assert(calls.some(c=>c.url==='/api/newsletter/'&&c.opts.headers['X-CSRFToken']==='rotated-csrf'));
+await capture.submit({target:{id:'footer-newsletter',fields:{email:'footer@example.com'},querySelector(){return {disabled:false}},reset(){}},stopImmediatePropagation(){},preventDefault(){}});
+assert(calls.some(c=>c.url==='/api/newsletter/'&&JSON.parse(c.opts.body).email==='footer@example.com'));
 await click({dataset:{remove:'coffee'}});assert.equal(el('#count').textContent,0);
 assert(calls.filter(c=>c.opts.method!=='GET').every(c=>c.opts.credentials==='same-origin'));
 console.log('Django frontend bridge: database catalog, API cart/wishlist, registration, CSRF rotation and newsletter passed.');
