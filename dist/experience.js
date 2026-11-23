@@ -43,6 +43,18 @@
     }
   }
   app.addEventListener('click', event => {
+    const filter = event.target.closest('[data-home-filter]');
+    if (filter) {
+      const category = filter.dataset.homeFilter;
+      const target = app.querySelector('.modern-products .products');
+      if (target) {
+        const selection = products.filter(product => category === 'all' || product.cat === category).slice(0, 4);
+        target.innerHTML = grid(selection);
+        app.querySelectorAll('[data-home-filter]').forEach(button => button.setAttribute('aria-pressed', String(button === filter)));
+        const description = app.querySelector('[data-filter-description]');
+        description.textContent = selection.length ? (category === 'all' ? 'Explore our featured everyday essentials.' : `Explore our ${filter.textContent.trim().toLowerCase()} collection.`) : 'New products will appear here as they are added. Explore all products or contact our team.';
+      }
+    }
     const giftLink = event.target.closest('[data-gift-enquiry]');
     if (giftLink) giftEnquiry = giftLink.dataset.giftEnquiry;
     const choice = event.target.closest('[data-ritual]');
