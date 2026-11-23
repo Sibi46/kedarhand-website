@@ -32,6 +32,8 @@ def storefront(request):
     html = html.replace('href="experience.css', 'href="/static/experience.css')
     html = html.replace('href="botanical.css', 'href="/static/botanical.css')
     html = html.replace('href="fonts-footer.css', 'href="/static/fonts-footer.css')
+    html = html.replace('href="mobile.css', 'href="/static/mobile.css')
+    html = html.replace('src="mobile.js', 'src="/static/mobile.js')
     html = html.replace('src="experience.js', 'src="/static/experience.js')
     html = html.replace('src="announcement.js', 'src="/static/announcement.js')
     html = html.replace('src="assets/', 'src="/static/assets/')

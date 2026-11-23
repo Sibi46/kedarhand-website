@@ -17,6 +17,8 @@ class StorePrefixTests(SimpleTestCase):
         self.assertIn('href="/kedarhand/static/experience.css', html)
         self.assertIn('href="/kedarhand/static/botanical.css', html)
         self.assertIn('href="/kedarhand/static/fonts-footer.css', html)
+        self.assertIn('href="/kedarhand/static/mobile.css', html)
+        self.assertIn('src="/kedarhand/static/mobile.js', html)
         self.assertIn('href="/kedarhand/shop/"', html)
         self.assertNotIn('src="/static/', html)
 
