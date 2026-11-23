@@ -2,6 +2,9 @@
 let storeConfig = null;
 const baseContact = contact, baseArt = art, commerceRender = render;
 art = function(p) {
+  const photoBase = (window.KEDARMART_BASE_PATH || '') + '/static/assets/';
+  const servingPhotos = {'instant-coffee': 'coffee-moment.jpg', 'blend-coffee': 'coffee-beans.jpg', 'cappuccino': 'coffee-table.jpg'};
+  if (!p.image && servingPhotos[p.id]) return `<div class="product-art photo-product"><a href="${window.KEDARMART_BASE_PATH||''}/products/${encodeURIComponent(p.id)}/" aria-label="View ${escapeHTML(p.name)}"><img src="${photoBase + servingPhotos[p.id]}" alt="Coffee serving inspiration" loading="lazy"></a><span class="photo-disclaimer">Serving inspiration</span><button class="wish" data-wish="${escapeHTML(p.id)}" aria-label="Save ${escapeHTML(p.name)}" aria-pressed="${wishlist.includes(p.id)}">${wishlist.includes(p.id)?'&#9829;':'&#9825;'}</button></div>`;
   return p.image ? `<a class="product-art" href="${window.KEDARMART_BASE_PATH||''}/products/${encodeURIComponent(p.id)}/"><img src="${escapeHTML(p.image)}" alt="${escapeHTML(p.name)}" loading="lazy" style="width:100%;height:100%;min-height:240px;max-height:460px;object-fit:contain"></a>` : baseArt(p);
 };
 contact = function() {
@@ -12,6 +15,16 @@ render = function() {
   commerceRender();
   const route = location.hash.slice(1) || 'home';
   if (['shop','all-products','coffee','tea','edible-oils'].includes(route)) {
+    if (['coffee','edible-oils'].includes(route)) {
+      const oil = route === 'edible-oils';
+      const assets = (window.KEDARMART_BASE_PATH || '') + '/static/assets/';
+      const category = storeCategories.find(item => item.slug === route);
+      const photo = category?.image || assets + (oil ? 'oil-kitchen.jpg' : 'coffee-table.jpg');
+      const section = app.querySelector('section');
+      section.classList.add('photo-collection-page', oil ? 'oil-collection' : 'coffee-collection');
+      section.insertAdjacentHTML('afterbegin', `<div class="collection-photo-hero"><div class="collection-photo-copy"><span class="editorial-tag">${oil ? 'THE KITCHEN COLLECTION' : 'THE COFFEE COLLECTION'}</span><h2>${oil ? 'Good food starts<br>with good essentials.' : 'Find your<br>coffee moment.'}</h2><p>${oil ? 'Explore our cold-pressed mustard oil for everyday cooking. Speak to our team about bottle sizes, availability and product details.' : 'From a quick morning cup to an unhurried coffee break. Explore instant coffee, our Arabica + Robusta blend and cappuccino premix.'}</p><button class="btn" type="button" data-scroll-collection>Explore ${oil ? 'edible oils' : 'coffee'} &#8595;</button><div class="collection-tags">${(oil ? ['Cold-pressed mustard oil','Everyday cooking'] : ['Instant coffee','Arabica + Robusta','Cappuccino']).map(text=>`<span>${text}</span>`).join('')}</div></div><figure><img src="${escapeHTML(photo)}" alt="${oil ? 'Cooking oil in a kitchen setting' : 'Coffee shared over a table'}" fetchpriority="high"><figcaption>${category?.image ? 'Our collection' : 'Lifestyle inspiration'}</figcaption></figure></div>`);
+      section.insertAdjacentHTML('beforeend', `<div class="collection-photo-story"><img src="${assets + (oil ? 'kitchen-essentials.jpg' : 'coffee-beans.jpg')}" alt="${oil ? 'Kitchen ingredients and cooking oil' : 'Roasted coffee beans and ground coffee'}" loading="lazy"><div><span class="editorial-tag">${oil ? 'AT THE HEART OF YOUR KITCHEN' : 'FROM THE FIRST AROMA'}</span><h2>${oil ? 'For meals worth sharing.' : 'Make a little time<br>for a good cup.'}</h2><p>${oil ? 'Find an everyday essential for your kitchen. Our team can help with product information, pack sizes and availability.' : 'Explore the collection and choose the coffee that fits your day. Product details and available options are shown with each item.'}</p><a class="modern-link" href="#contact">Ask our team &#8599;</a></div></div>`);
+    }
     const scoped = products.filter(p=>['shop','all-products'].includes(route)||p.cat===route);
     const subcategories = [...new Set(scoped.map(p=>p.subcategory).filter(Boolean))].sort();
     if(subcategories.length) {

@@ -37,7 +37,7 @@ def storefront(request):
     for category in ['coffee', 'tea', 'edible-oils']:
         html = html.replace('href="#' + category + '"', 'href="/categories/' + category + '/"')
     html = html.replace('href="#shop"', 'href="/shop/"')
-    html = html.replace('</body>', '<script src="/static/backend.js"></script><script src="/static/commerce.js"></script></body>')
+    html = html.replace('</body>', '<script src="/static/backend.js"></script><script src="/static/commerce.js?v=photos-20261123-1"></script></body>')
     base_path = json.dumps(settings.FORCE_SCRIPT_NAME or '')
     html = html.replace('</head>', '<script>window.KEDARMART_BASE_PATH=' + base_path + ';</script></head>')
     return HttpResponse(html)

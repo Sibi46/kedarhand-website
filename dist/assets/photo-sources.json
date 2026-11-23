@@ -1,0 +1,10 @@
+{
+  "note": "Real lifestyle photographs; not images of the branded product packaging. Admin-uploaded product photographs take precedence.",
+  "license": "https://unsplash.com/license",
+  "images": {
+    "coffee-beans.jpg": "https://images.unsplash.com/photo-1559525839-b184a4d698c7",
+    "coffee-table.jpg": "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085",
+    "coffee-moment.jpg": "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd",
+    "oil-kitchen.jpg": "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5"
+  }
+}
